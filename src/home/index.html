@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marchol</title>
+    <style>
+        body {
+        width: 100vw;
+        height: 100vh;
+        background: #adffcf;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: linear-gradient(209deg, rgba(173, 255, 207, 1) 0%, rgba(32, 169, 109, 1) 43%, rgba(77, 166, 201, 1) 60%, rgba(36, 129, 166, 1) 75%);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        button, h1 {
+
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #URL {
+            width: 85vw;
+
+            border: 2px solid gray;
+            background: white;
+            color: black;
+        }
+        button {
+            width: 10vw;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" placeholder="URL" id="URL"><button onclick="sendMessage()">wyszukaj</button>
+    <h1>WItamy w naszej przeglądarce interneowej!!!</h1>
+    <script>
+            const ws = new WebSocket("ws://localhost:8080");
+
+ws.onopen = () => {
+    console.log("Połączono z serwerem WebSocket");
+};
+
+
+function sendMessage() {
+    const value = document.getElementById("URL").value;
+    ws.send(value);
+}
+
+    </script>
+</body>
+</html>

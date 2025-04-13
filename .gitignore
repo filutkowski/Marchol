@@ -1,0 +1,10 @@
+# Ignorowanie katalogu node_modules
+node_modules/
+
+# Ignorowanie katalogu pack
+pack/
+
+# Ignorowanie pliku package-lock.json
+package-lock.json
+# ignorowanie katalogu dist
+dist/

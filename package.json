@@ -1,0 +1,43 @@
+{
+  "name": "marchol",
+  "version": "16.4.6",
+  "description": "Marchol browser installer project",
+  "license": "MIT",
+  "author": "Michał",
+  "type": "module",
+  "main": "./src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.node.marchol",
+    "productName": "Marchol",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist/**/*",
+      "src/**/*"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": true
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "./assets/icon.ico",
+      "artifactName": "installer.exe"
+    },
+    "asar": true
+  },
+  "devDependencies": {
+    "electron": "^35.1.5",
+    "electron-builder": "^24.1.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.18.1"
+  }
+}
