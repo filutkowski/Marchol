@@ -1,0 +1,40 @@
+{
+  "name": "marchol",
+  "version": "16.4.6",
+  "description": "",
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "./src/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "build": {
+    "appId": "com.node.Marchol",
+    "productName": "Marchol",
+    "directories": {
+      "output": "pack"
+    },
+    "files": [
+      "./src/*.*",
+      "./src/**/*.*"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico",
+      "artifactName": "installer.exe"
+    },
+    "asar": false
+  },
+  "devDependencies": {
+  "electron": "^35.1.5"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.18.1"
+  }
+}
