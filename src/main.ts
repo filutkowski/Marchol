@@ -1,23 +1,24 @@
 import { app, BrowserWindow, Menu, dialog } from "electron";
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
-import msfile from "./extensions/msfile.mjs";
+import msfile from "./extensions/msfile.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let mainWindow;
+let mainWindow: BrowserWindow | null = null;
 const wss = new WebSocketServer({ port: 8080 });
 
-async function main() {
-  // WebSocket obsługa
-  wss.on("connection", (ws) => {
+// Główna funkcja
+async function main(): Promise<void> {
+  // Obsługa WebSocket
+  wss.on("connection", (ws: WebSocket) => {
     console.log("Klient połączony");
 
-    ws.on("message", (message) => {
-      let decodedMessage = message.toString();
+    ws.on("message", (message: string) => {
+      let decodedMessage: string = message.toString();
       console.log("Otrzymano wiadomość:", decodedMessage);
 
       // Dodaj "http://" jeśli brakuje protokołu
@@ -39,40 +40,22 @@ async function main() {
   });
 
   // Funkcja tworzenia menu
-  function createMenu() {
-    const menuTemplate = [
+  function createMenu(): void {
+    const menuTemplate: Electron.MenuItemConstructorOptions[] = [
       {
         label: "Dom",
         click: () => {
           if (mainWindow) {
-            mainWindow.loadFile(path.join(__dirname, "home", "index.html")); // Załaduj stronę główną
+            mainWindow.loadFile(path.join(__dirname, "home", "index.html"));
           } else {
             console.error("Okno główne nie istnieje.");
           }
         },
       },
       {
-        label: "Z pliku",
-        click: () => {
-          let files = dialog.showOpenDialogSync(mainWindow, {
-            properties: ["openFile"],
-            filters: [
-              { name: "Pliki strony internetowej [.html]", extensions: ["html"] },
-              { name: "Wszystkie pliki", extensions: ["*"] },
-            ],
-          });
-
-          if (files && files[0]) {
-            msfile(files[0], mainWindow); // Wywołanie funkcji obsługującej plik
-          } else {
-            console.error("Nie wybrano pliku.");
-          }
-        },
-      },
-      {
         label: "SVG",
         click: () => {
-          let files = dialog.showOpenDialogSync(mainWindow, {
+          const files = dialog.showOpenDialogSync(mainWindow!, {
             properties: ["openFile"],
             filters: [
               { name: "Pliki SVG", extensions: ["svg"] },
@@ -83,47 +66,51 @@ async function main() {
           if (files && files[0]) {
             const svgPath = path.join(__dirname, "svg", "image.svg");
 
-            if (fs.existsSync(svgPath)) {
-              fs.unlinkSync(svgPath); // Usuń stary plik
-            }
+            try {
+              // Skopiuj plik SVG do lokalizacji
+              fs.copyFileSync(files[0], svgPath);
 
-            fs.copyFileSync(files[0], svgPath); // Skopiuj nowy plik
-            mainWindow.loadFile(path.join(__dirname, "svg", "index.html")); // Załaduj SVG
+              // Załaduj plik index.html
+              mainWindow?.loadFile(path.join(__dirname, "svg", "index.html"));
+            } catch (err) {
+              console.error("Błąd podczas kopiowania pliku SVG:", err);
+            }
           } else {
             console.error("Nie wybrano pliku SVG.");
           }
         },
       },
       {
-        label: "Google",
+        label: "Z pliku",
         click: () => {
-          if (mainWindow) {
-            mainWindow.loadURL("http://google.com");
+          const files = dialog.showOpenDialogSync(mainWindow!, {
+            properties: ["openFile"],
+            filters: [
+              { name: "Pliki HTML", extensions: ["html"] },
+              { name: "Wszystkie pliki", extensions: ["*"] },
+            ],
+          });
+
+          if (files && files[0]) {
+            msfile(files[0], mainWindow!);
           } else {
-            console.error("Okno główne nie istnieje.");
+            console.error("Nie wybrano pliku.");
           }
         },
       },
+      { label: "Google", click: () => mainWindow?.loadURL("http://google.com") },
+      { label: "Bing", click: () => mainWindow?.loadURL("http://bing.com") },
       {
-        label: "Bing",
-        click: () => {
-          if (mainWindow) {
-            mainWindow.loadURL("http://bing.com");
-          } else {
-            console.error("Okno główne nie istnieje.");
-          }
-        },
-    }, {
         label: "⋮",
         submenu: [
-            {
-                label: "otwórz narzędzia deweloperskie",
-                click: () => {
-                    mainWindow.webContents.toggleDevTools();
-                },
+          {
+            label: "Otwórz narzędzia deweloperskie",
+            click: () => {
+              mainWindow?.webContents.toggleDevTools();
             },
+          },
         ],
-    },
+      },
     ];
 
     const menu = Menu.buildFromTemplate(menuTemplate);
@@ -131,7 +118,7 @@ async function main() {
   }
 
   // Tworzenie okna głównego
-  function createWindow() {
+  function createWindow(): void {
     mainWindow = new BrowserWindow({
       width: 800,
       height: 600,
@@ -140,17 +127,16 @@ async function main() {
       },
     });
 
-    createMenu(); // Ustaw menu
-    mainWindow.loadFile(path.join(__dirname, "home", "index.html")); // Załaduj stronę główną
+    createMenu();
+    mainWindow.loadFile(path.join(__dirname, "home", "index.html"));
 
     mainWindow.on("closed", () => {
-      mainWindow = null; // Wyczyść referencję
+      mainWindow = null;
     });
   }
 
   // Obsługa zdarzeń aplikacji
   app.on("ready", createWindow);
-
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
       app.quit();

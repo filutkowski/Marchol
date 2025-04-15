@@ -5,10 +5,10 @@
   "license": "MIT",
   "author": "Michał",
   "type": "module",
-  "main": "./src/main.js",
+  "main": "./dist/main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder"
+    "start": "call start.bat",
+    "build": "tsc && robocopy ./src ./dist /E && electron-builder"
   },
   "build": {
     "appId": "com.node.marchol",
@@ -28,13 +28,17 @@
     "win": {
       "target": "nsis",
       "icon": "./assets/icon.ico",
-      "artifactName": "installer.exe"
+      "artifactName": "installer-${version}.exe"
     },
     "asar": true
   },
   "devDependencies": {
+    "@types/electron": "^1.4.38",
+    "@types/express": "^5.0.1",
+    "@types/ws": "^8.18.1",
     "electron": "^35.1.5",
-    "electron-builder": "^24.1.0"
+    "electron-builder": "^24.1.0",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "express": "^5.1.0",
