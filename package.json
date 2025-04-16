@@ -1,6 +1,6 @@
 {
   "name": "marchol",
-  "version": "16.4.6",
+  "version": "17.0.2",
   "description": "Marchol browser installer project",
   "license": "MIT",
   "author": "Michał",
@@ -14,11 +14,10 @@
     "appId": "com.node.marchol",
     "productName": "Marchol",
     "directories": {
-      "output": "dist"
+      "output": "pack"
     },
     "files": [
       "dist/**/*",
-      "src/**/*"
     ],
     "nsis": {
       "oneClick": false,
@@ -30,7 +29,7 @@
       "icon": "./assets/icon.ico",
       "artifactName": "installer-${version}.exe"
     },
-    "asar": true
+    "asar": false
   },
   "devDependencies": {
     "@types/electron": "^1.4.38",
