@@ -1,6 +1,6 @@
 {
   "name": "marchol",
-  "version": "17.0.7",
+  "version": "17.0.8",
   "description": "Marchol browser installer project",
   "license": "MIT",
   "author": "Michał",
@@ -32,7 +32,8 @@
     "asar": false
   },
   "devDependencies": {
-	"electron": "^35.1.5"
+	"electron": "^35.1.5",
+	"electron-builder": "^24.1.0"
   },
   "dependencies": {
     "express": "^5.1.0",
@@ -40,7 +41,6 @@
     "@types/express": "^5.0.1",
     "@types/ws": "^8.18.1",
     "ws": "^8.18.1",
-    "electron-builder": "^24.1.0",
     "typescript": "^5.8.3"
   }
 }
