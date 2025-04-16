@@ -1,6 +1,6 @@
 {
   "name": "marchol",
-  "version": "17.0.2",
+  "version": "17.0.4",
   "description": "Marchol browser installer project",
   "license": "MIT",
   "author": "Michał",
@@ -27,7 +27,7 @@
     "win": {
       "target": "nsis",
       "icon": "./assets/icon.ico",
-      "artifactName": "installer-${version}.exe"
+      "artifactName": "installer.exe"
     },
     "asar": false
   },
