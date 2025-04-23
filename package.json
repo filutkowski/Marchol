@@ -17,7 +17,7 @@
       "output": "pack"
     },
     "files": [
-      "dist/**/*"
+      "src/**/*"
     ],
     "nsis": {
       "oneClick": false,
