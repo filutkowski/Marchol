@@ -1,6 +1,6 @@
 import { app, BrowserWindow, Menu, session, BrowserView, dialog } from "electron";
 import { WebSocketServer } from "ws";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
 import path from "path";
 import fs from "fs";
 import Msfile from "./extensions/msfile.mjs"
@@ -16,13 +16,15 @@ let downloadGUI
 let historyGUI
 let downloadGUIWebSocket;
 let historyGUIWebSocket;
+let data = JSON.parse(fs.readFileSync(path.join(__dirname, "conf", "global.json")))
 
 const wss = new WebSocketServer({ port: 8080 });
 const downloadWss = new WebSocketServer({ port: 2669 });
 const historyWss = new WebSocketServer({ port: 2670 });
+const settingsWss = new WebSocketServer({ port: 5555 });
 
 function createWindow() {
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < data.tabs; i++) {
         let win = new BrowserWindow({
             width: 800,
             height: 600,
@@ -146,7 +148,7 @@ async function main() {
 }
 
 function createMenu() {
-    const cards = Array.from({ length: 20 }, (_, i) => ({
+    const cards = Array.from({ length: data.tabs }, (_, i) => ({
         label: `Karta ${i + 1}`,
         click: () => changeTask(i),
     }));
@@ -206,6 +208,39 @@ function createMenu() {
                     click: () => {
                         if (!Tasks[focus]) return;
                         Tasks[focus].webContents.toggleDevTools();
+                    },
+                },
+                {
+                    label: "Otwórz ustawienia",
+                    click: () => {
+                        Tasks[focus].loadFile(path.join(__dirname, "settings", "index.html"))
+                        
+                        settingsWss.on("connection", (ws) => {
+                            ws.send(JSON.stringify({ incognito: data.incognito, tabs: data.tabs }));
+                            
+                            ws.on("message", (event) => {
+                                try {
+                                    // Parsowanie wiadomości
+                                    data = JSON.parse(event.toString());
+                        
+                                    // Walidacja danych
+                                    const updatedData = {
+                                        incognito: Boolean(data.incognito),
+                                        tabs: Number(data.tabs)
+                                    };
+                        
+                                    // Zapis danych do pliku
+                                    fs.writeFileSync(
+                                        path.join(__dirname, "conf", "global.json"), 
+                                        JSON.stringify(updatedData, null, 2) // Null i 2 dla czytelnego formatowania JSON
+                                    );
+                                } catch (error) {
+                                    console.error("Wystąpił błąd podczas przetwarzania wiadomości:", error.message);
+                                }
+                            });
+                        });
+                        
+                        console.log(data)
                     },
                 },
             ],
@@ -325,4 +360,3 @@ async function historyStop() {
     }
 }
 
-// Dodaj własną funkcję jeśli chcesz wspierać otwieranie z pliku

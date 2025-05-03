@@ -7,8 +7,7 @@
   "type": "module",
   "main": "./src/main.js",
   "scripts": {
-    "start": "start start.bat",
-    "build": "electron-builder"
+    "start": "nodemon --exec electron ."
   },
   "build": {
     "appId": "com.node.marchol",
@@ -25,21 +24,24 @@
       "perMachine": true
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "./assets/icon.ico",
       "artifactName": "installer.exe"
     },
     "asar": false
   },
   "devDependencies": {
-	"electron": "^35.1.5"
+    "electron": "^35.1.5"
   },
   "dependencies": {
-    "express": "^5.1.0",
     "@types/electron": "^1.4.38",
     "@types/express": "^5.0.1",
     "@types/ws": "^8.18.1",
-    "ws": "^8.18.1",
-    "typescript": "^5.8.3"
+    "express": "^5.1.0",
+    "npm": "^11.3.0",
+    "typescript": "^5.8.3",
+    "ws": "^8.18.1"
   }
 }
