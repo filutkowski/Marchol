@@ -1,3 +1,5 @@
 pnpm-lock.yaml
 pack/
 node_modules/** 
+src/conf/temp/history.pud
+src/conf/global.json
