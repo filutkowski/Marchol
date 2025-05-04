@@ -297,6 +297,21 @@ function createMenu() {
                         app.exit();
                     },
                 },
+                {
+                    label: "Deutsch (Niemiecki)",
+                    click: () => {
+                        data.lang = "de-de"
+                        const updatedData = {
+                            incognito: Boolean(data.incognito),
+                            tabs: Number(data.tabs),
+                            lang: String(data.lang),
+                        };
+        
+                        fs.writeFileSync(CONFIG_PATH, JSON.stringify(updatedData, null, 2));
+                        app.relaunch();
+                        app.exit();
+                    },
+                }
             ],
         },
     ];

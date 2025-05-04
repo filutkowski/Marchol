@@ -1,6 +1,6 @@
 {
   "name": "marchol",
-  "version": "18.0.8",
+  "version": "18.0.12",
   "description": "Marchol browser project",
   "license": "MIT",
   "author": "Michał",
@@ -30,7 +30,8 @@
     "asar": false
   },
   "devDependencies": {
-    "electron": "^35.0.2"
+    "electron": "^35.0.2",
+    "electron-builder": "26.0.13"
   },
   "dependencies": {
     "@types/electron": "^1.6.12",
@@ -39,7 +40,6 @@
     "express": "^5.1.0",
     "npm": "^11.3.0",
     "typescript": "^5.8.3",
-    "ws": "^8.18.1",
-    "electron-builder": "26.0.13"
-  }
+    "ws": "^8.18.1"
+    }
 }
