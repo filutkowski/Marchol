@@ -3,20 +3,33 @@ import { WebSocketServer } from "ws";
 import { fileURLToPath } from "node:url";
 import path from "path";
 import fs from "fs";
-import Msfile from "./extensions/msfile.mjs"
+import Msfile from "./extensions/msfile.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
+const CONFIG_PATH = path.join(__dirname, "conf", "global.json");
+let data = JSON.parse(fs.readFileSync(CONFIG_PATH));
+const lang = data.lang
+const HISTORY_CONFIG_PATH = path.join(__dirname, "conf", "temp", "history.pud");
+const HOME_PATH = path.join(__dirname, "lang", "assets", lang, "home.html")
+const DEFAULTLANG = JSON.parse(fs.readFileSync(path.join(__dirname, "lang", lang + ".json"), "utf-8"));
+const SETTINGS_PATH = path.join(__dirname, "lang", "assets", lang, "settings", "index.html")
+const DOWNLOAD_PATH = path.join(__dirname, "lang", "assets", lang, "download.html")
+const HISTORY_PATH = path.join(__dirname, "lang", "assets", lang, "history.html")
+
+
 let Bounds;
+
 let Tasks = [];
 let focus = 0;
-let ses
-let downloadGUI
-let historyGUI
+let ses;
+let downloadGUI;
+let historyGUI;
 let downloadGUIWebSocket;
 let historyGUIWebSocket;
-let data = JSON.parse(fs.readFileSync(path.join(__dirname, "conf", "global.json")))
+
 
 const wss = new WebSocketServer({ port: 8080 });
 const downloadWss = new WebSocketServer({ port: 2669 });
@@ -31,20 +44,26 @@ function createWindow() {
             webPreferences: {
                 nodeIntegration: true,
             },
-            movable: false,
-            resizable: false,
-            minimizable: false,
+            show: false, // nie pokazuj od razu
         });
 
-        win.setSkipTaskbar(true);
         Tasks.push(win);
     }
 
-    Tasks[focus].maximize();
-    Tasks[focus].setSkipTaskbar(false);
-    ses = Tasks[focus].webContents.session;
-    Bounds = Tasks[focus].getBounds();
-    attachNavigationHandlers(Tasks[focus]);
+    Tasks.forEach((win, i) => {
+        if (i === 0) {
+            win.setSkipTaskbar(false);
+            win.show();
+            win.maximize();
+            ses = win.webContents.session;
+            Bounds = win.getBounds();
+            attachNavigationHandlers(win);
+        } else {
+            win.setSkipTaskbar(true);
+            win.minimize();
+        }
+    });
+
     download();
 }
 
@@ -60,8 +79,8 @@ function changeTask(number) {
     }
 
     focus = number;
-    Tasks[focus].restore();
     Tasks[focus].setSkipTaskbar(false);
+    Tasks[focus].show();
     Tasks[focus].maximize();
 
     ses = Tasks[focus].webContents.session;
@@ -81,93 +100,94 @@ function attachNavigationHandlers(win) {
 
 async function main() {
     wss.on("connection", (ws) => {
-        console.log("Klient połączony");
-
         ws.on("message", (message) => {
             let decodedMessage = message.toString();
-            console.log("Otrzymano wiadomość:", decodedMessage);
 
             if (!decodedMessage.startsWith("http://") && !decodedMessage.startsWith("https://")) {
                 decodedMessage = `http://${decodedMessage}`;
             }
 
-            if (!Tasks[focus]) {
-                console.error("Tasks[focus] nie istnieje.");
-                return;
-            }
+            if (!Tasks[focus]) return;
 
             Tasks[focus].loadURL(decodedMessage);
             Wil(decodedMessage);
             ws.send(`Otrzymałem poprawiony URL: ${decodedMessage}`);
         });
-
-        ws.on("close", () => console.log("Klient rozłączył się"));
-        ws.on("error", (error) => console.error("Błąd WebSocket:", error));
     });
 
     downloadWss.on("connection", (ws) => {
-        console.log("Klient połączony do downloadWss");
         downloadGUIWebSocket = ws;
-
-        ws.on("close", () => {
-            console.log("Klient rozłączył się (downloadWss)");
-        });
-
-        ws.on("error", (error) => {
-            console.error("Błąd WebSocket (downloadWss):", error);
-        });
     });
 
     historyWss.on("connection", (ws) => {
-        console.log("Klient połączony do historyWss");
         historyGUIWebSocket = ws;
 
-        const historyPath = path.join(__dirname, "conf", "temp", "history.pud");
-        if (fs.existsSync(historyPath)) {
-            const historyData = fs.readFileSync(historyPath, "utf-8");
+        if (fs.existsSync(HISTORY_CONFIG_PATH)) {
+            const historyData = fs.readFileSync(HISTORY_CONFIG_PATH, "utf-8");
             ws.send(historyData);
         }
+    });
 
-        ws.on("close", () => {
-            console.log("Klient rozłączył się (historyWss)");
-        });
+    settingsWss.on("connection", (ws) => {
+        ws.send(JSON.stringify({ incognito: data.incognito, tabs: data.tabs }));
 
-        ws.on("error", (error) => {
-            console.error("Błąd WebSocket (historyWss):", error);
+        ws.on("message", (event) => {
+            try {
+                const updated = JSON.parse(event.toString());
+                const updatedData = {
+                    incognito: Boolean(updated.incognito),
+                    tabs: Number(updated.tabs),
+                };
+
+                fs.writeFileSync(CONFIG_PATH, JSON.stringify(updatedData, null, 2));
+
+                [wss, downloadWss, historyWss, settingsWss].forEach(server => {
+                    server.clients.forEach(client => {
+                        if (client.readyState === client.OPEN) {
+                            client.close();
+                        }
+                    });
+                });
+
+                if (downloadGUIWebSocket?.readyState === downloadGUIWebSocket.OPEN) {
+                    downloadGUIWebSocket.close();
+                }
+
+                app.relaunch();
+                app.exit();
+            } catch (error) {
+                console.error("Błąd przetwarzania ustawień:", error.message);
+            }
         });
     });
 
     createWindow();
     createMenu();
 
-    Tasks[focus].loadFile(path.join(__dirname, "home", "index.html"));
-
-    Tasks[focus].on("closed", () => {
-        Tasks[focus] = null;
-    });
+    Tasks[focus].loadFile(HOME_PATH);
 }
 
 function createMenu() {
     const cards = Array.from({ length: data.tabs }, (_, i) => ({
-        label: `Karta ${i + 1}`,
+        label:  DEFAULTLANG["menu-cards"] + " " + (i + 1),
         click: () => changeTask(i),
     }));
 
     const menuTemplate = [
         {
-            label: "karty",
+            label: DEFAULTLANG["menu-tabs"],
             submenu: cards,
         },
         {
-            label: "Dom",
+            label: DEFAULTLANG["menu-home"],
             click: () => {
                 if (!Tasks[focus]) return;
-                Tasks[focus].loadFile(path.join(__dirname, "home", "index.html"));
+                Tasks[focus].loadFile(HOME_PATH);
                 Wil("home");
             },
         },
         {
-            label: "Google",
+            label: DEFAULTLANG["menu-google"],
             click: () => {
                 if (!Tasks[focus]) return;
                 Tasks[focus].loadURL("http://google.com");
@@ -175,7 +195,7 @@ function createMenu() {
             },
         },
         {
-            label: "Bing",
+            label: DEFAULTLANG["menu-bing"],
             click: () => {
                 if (!Tasks[focus]) return;
                 Tasks[focus].loadURL("http://bing.com");
@@ -183,15 +203,15 @@ function createMenu() {
             },
         },
         {
-            label: "Z pliku",
+            label: DEFAULTLANG["menu-fromFile"],
             click: () => {
                 if (!Tasks[focus]) return;
                 let files = dialog.showOpenDialogSync(Tasks[focus], {
                     properties: ["openFile"],
                     filters: [
-                        { name: "Pliki HTML", extensions: ["html"] },
-                        { name: "Obrazy", extensions: ["svg", "png", "bmp", "webp", "jpg"] },
-                        { name: "Wszystkie", extensions: ["*"] },
+                        { name: DEFAULTLANG["dialog-fileFilters-html"], extensions: ["html"] },
+                        { name: DEFAULTLANG["dialog-fileFilters-images"], extensions: ["svg", "png", "bmp", "webp", "jpg"] },
+                        { name: DEFAULTLANG["dialog-fileFilters-all"], extensions: ["*"] },
                     ],
                 });
 
@@ -204,67 +224,77 @@ function createMenu() {
             label: "⋮",
             submenu: [
                 {
-                    label: "Otwórz narzędzia deweloperskie",
+                    label: DEFAULTLANG["menu-devTools"],
                     click: () => {
                         if (!Tasks[focus]) return;
                         Tasks[focus].webContents.toggleDevTools();
                     },
                 },
                 {
-                    label: "Otwórz ustawienia",
+                    label: DEFAULTLANG["menu-settings"],
                     click: () => {
-                        Tasks[focus].loadFile(path.join(__dirname, "settings", "index.html"))
+                        Tasks[focus].loadFile(SETTINGS_PATH);
                         
-                        settingsWss.on("connection", (ws) => {
-                            ws.send(JSON.stringify({ incognito: data.incognito, tabs: data.tabs }));
-                            
-                            ws.on("message", (event) => {
-                                try {
-                                    // Parsowanie wiadomości
-                                    data = JSON.parse(event.toString());
-                        
-                                    // Walidacja danych
-                                    const updatedData = {
-                                        incognito: Boolean(data.incognito),
-                                        tabs: Number(data.tabs)
-                                    };
-                        
-                                    // Zapis danych do pliku
-                                    fs.writeFileSync(
-                                        path.join(__dirname, "conf", "global.json"), 
-                                        JSON.stringify(updatedData, null, 2) // Null i 2 dla czytelnego formatowania JSON
-                                    );
-                                } catch (error) {
-                                    console.error("Wystąpił błąd podczas przetwarzania wiadomości:", error.message);
-                                }
-                            });
-                        });
-                        
-                        console.log(data)
-                    },
+                  },
                 },
+
             ],
         },
         {
-            label: "historia",
+            label: DEFAULTLANG["menu-history"],
             submenu: [
                 {
-                    label: "Otwórz historię",
+                    label: DEFAULTLANG["menu-history-open"],
                     click: () => {
                         historyStart();
                     },
                 },
                 {
-                    label: "Zamknij historię",
+                    label: DEFAULTLANG["menu-history-close"],
                     click: () => {
                         historyStop();
                     },
                 },
                 {
-                    label: "Wyczyść historię",
+                    label: DEFAULTLANG["menu-history-clear"],
                     click: () => {
-                        fs.unlinkSync(path.join(__dirname, "conf", "temp", "history.pud"))
-                        fs.writeFileSync(path.join(__dirname, "conf", "temp", "history.pud") ,"")
+                        fs.writeFileSync(HISTORY_CONFIG_PATH, "");
+                    },
+                },
+
+            ],
+        },
+        {
+            label: "language (język)",
+            submenu: [
+                {
+                    label: "English (Angielski)",
+                    click: () => {
+                        data.lang = "en-en"
+                        const updatedData = {
+                            incognito: Boolean(data.incognito),
+                            tabs: Number(data.tabs),
+                            lang: String(data.lang),
+                        };
+        
+                        fs.writeFileSync(CONFIG_PATH, JSON.stringify(updatedData, null, 2));
+                        app.relaunch();
+                        app.exit();
+                    },
+                },
+                {
+                    label: "Polski (Polish)",
+                    click: () => {
+                        data.lang = "pl-pl"
+                        const updatedData = {
+                            incognito: Boolean(data.incognito),
+                            tabs: Number(data.tabs),
+                            lang: String(data.lang),
+                        };
+        
+                        fs.writeFileSync(CONFIG_PATH, JSON.stringify(updatedData, null, 2));
+                        app.relaunch();
+                        app.exit();
                     },
                 },
             ],
@@ -289,30 +319,19 @@ app.on("activate", () => {
 });
 
 async function download() {
-    if (!ses) {
-        console.error("Sesja nie została zainicjowana.");
-        return;
-    }
+    if (!ses) return;
 
     ses.on("will-download", (event, item) => {
-        console.log(`Rozpoczęto pobieranie: ${item.getFilename()}`);
-
         downloadGUI = new BrowserView();
         Tasks[focus].setBrowserView(downloadGUI);
         downloadGUI.setBounds({ x: 0, y: 0, width: 400, height: 200 });
-        downloadGUI.webContents.loadFile(path.join(__dirname, "download.html"));
+        downloadGUI.webContents.loadFile(DOWNLOAD_PATH);
 
-        if (downloadGUIWebSocket && downloadGUIWebSocket.readyState === 1) {
+        if (downloadGUIWebSocket?.readyState === 1) {
             downloadGUIWebSocket.send(item.getFilename());
         }
 
         item.once("done", (_event, state) => {
-            if (state === "completed") {
-                console.log(`Pobieranie zakończone: ${item.getFilename()}`);
-            } else {
-                console.log(`Pobieranie nie powiodło się: ${item.getFilename()}`);
-            }
-
             Tasks[focus].removeBrowserView(downloadGUI);
             downloadGUI = null;
         });
@@ -320,22 +339,13 @@ async function download() {
 }
 
 async function Wil(url) {
-    if (!url) return;
+    if (!url || data.incognito) return;
+
+    const homePath = "file:///" + (HOME_PATH.replace(/\\/g, "/"));
 
     try {
-        if (url != "file:///" + path.join(__dirname, "home", "index.html")) {
-        fs.appendFileSync(
-            path.join(__dirname, "conf", "temp", "history.pud"),
-            `${url}\n`
-        );
-
-    }
-    else {
-        fs.appendFileSync(
-            path.join(__dirname, "conf", "temp", "history.pud"),
-        "home"
-        );
-    }
+        const entry = url !== homePath ? `${url}\n` : "home\n";
+        fs.appendFileSync(HISTORY_CONFIG_PATH, entry);
         console.log(`Dodano do historii: ${url}`);
     } catch (err) {
         console.error("Błąd zapisu historii:", err.message);
@@ -348,7 +358,7 @@ async function historyStart() {
     historyGUI = new BrowserView();
     Tasks[focus].setBrowserView(historyGUI);
     historyGUI.setBounds({ x: 0, y: 0, width: 400, height: 200 });
-    historyGUI.webContents.loadFile(path.join(__dirname, "history.html"));
+    historyGUI.webContents.loadFile(HISTORY_PATH);
 }
 
 async function historyStop() {
@@ -359,4 +369,3 @@ async function historyStop() {
         console.log("Widok historii został zamknięty.");
     }
 }
-

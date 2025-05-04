@@ -1,14 +1,11 @@
 {
   "name": "marchol",
-  "version": "17.0.8",
-  "description": "Marchol browser installer project",
+  "version": "18.0.8",
+  "description": "Marchol browser project",
   "license": "MIT",
   "author": "Michał",
   "type": "module",
   "main": "./src/main.js",
-  "scripts": {
-    "start": "nodemon --exec electron ."
-  },
   "build": {
     "appId": "com.node.marchol",
     "productName": "Marchol",
@@ -33,15 +30,16 @@
     "asar": false
   },
   "devDependencies": {
-    "electron": "^35.1.5"
+    "electron": "^35.0.2"
   },
   "dependencies": {
-    "@types/electron": "^1.4.38",
+    "@types/electron": "^1.6.12",
     "@types/express": "^5.0.1",
     "@types/ws": "^8.18.1",
     "express": "^5.1.0",
     "npm": "^11.3.0",
     "typescript": "^5.8.3",
-    "ws": "^8.18.1"
+    "ws": "^8.18.1",
+    "electron-builder": "26.0.13"
   }
 }
