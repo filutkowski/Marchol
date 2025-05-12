@@ -15,10 +15,17 @@
     "files": [
       "src/**/*"
     ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": true
+    },
     "win": {
-      "target": "dir",
+      "target": [
+        "nsis"
+      ],
       "icon": "./assets/icon.ico",
-      "artifactName": "marchol.exe"
+      "artifactName": "installer.exe"
     },
     "asar": false
   },
@@ -31,10 +38,8 @@
     "@types/express": "^5.0.1",
     "@types/ws": "^8.18.1",
     "express": "^5.1.0",
-    "got": "^14.4.7",
     "npm": "^11.3.0",
-    "sax": "^1.4.1",
     "typescript": "^5.8.3",
     "ws": "^8.18.1"
-  }
+    }
 }

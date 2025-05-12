@@ -1,0 +1,17 @@
+{
+        "menu-tabs": "Tabs",
+        "menu-home": "Startseite",
+        "menu-google": "Google",
+        "menu-bing": "Bing",
+        "menu-fromFile": "Aus Datei",
+        "menu-devTools": "Entwicklertools",
+        "menu-settings": "Einstellungen",
+        "menu-history": "Verlauf",
+        "menu-history-open": "Verlauf öffnen",
+        "menu-history-close": "Verlauf schließen",
+        "menu-history-clear": "Verlauf löschen",
+        "dialog-fileFilters-html": "HTML-Dateien",
+        "dialog-fileFilters-images": "Bilder",
+        "dialog-fileFilters-all": "Alle",
+        "menu-cards": "Karte"
+}

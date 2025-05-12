@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            height: 100vh;
+            width: 100vw;
+            background: whitesmoke;
+            color: rgb(18, 21, 6);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        p {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <h1>History</h1>
+    <p></p>
+    <script>
+        const ws = new WebSocket('ws://localhost:2670'); // Connection to WebSocket server
+
+        // Handling connection opening
+        ws.onopen = () => {
+            console.log('Connected to WebSocket!');
+        };
+
+        // Handling message reception
+        ws.onmessage = (event) => {
+            document.querySelector("p").innerText = event.data;
+        };
+
+        // Handling errors
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        // Handling connection closure
+        ws.onclose = () => {
+            console.log('WebSocket connection has been closed.');
+        };
+    </script>
+</body>
+</html>

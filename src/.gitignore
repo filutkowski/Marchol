@@ -1,0 +1,5 @@
+package-lock.json
+pack/
+node_modules/** 
+src/conf/temp/history.pud
+src/conf/global.json
