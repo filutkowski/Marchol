@@ -1,0 +1,51 @@
+{
+  "name": "marchol",
+  "version": "18.1.12",
+  "description": "Marchol browser project",
+  "license": "MIT",
+  "author": "Michał",
+  "type": "module",
+  "main": "./src/main.js",
+  "build": {
+    "appId": "com.node.marchol",
+    "productName": "Marchol",
+    "directories": {
+      "output": "pack"
+    },
+    "files": [
+      "src/**/*"
+    ],
+    "win": {
+      "target": "dir",
+      "icon": "./icon.ico",
+      "artifactName": "marchol.exe"
+    },
+    "asar": false,
+    "publish": [
+      {
+        "provider": "github",
+        "repo": "marchol",
+        "owner": "filutkowski",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^35.0.2",
+    "electron-builder": "^26.0.13"
+  },
+  "dependencies": {
+    "@types/electron": "^1.6.12",
+    "@types/express": "^5.0.1",
+    "@types/ws": "^8.18.1",
+    "electron-updater": "^6.6.2",
+    "express": "^5.1.0",
+    "got": "^14.4.7",
+    "nodemon": "^3.1.10",
+    "npm": "^11.3.0",
+    "sax": "^1.4.1",
+    "tlsing": "^1.2.4",
+    "typescript": "^5.8.3",
+    "ws": "^8.18.1"
+  }
+}

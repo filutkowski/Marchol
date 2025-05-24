@@ -1,0 +1,24 @@
+# Node.js i zależności
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+src/node_modules/
+
+# Pliki kompilacji i budowania
+pack/
+dist/
+out/
+build/
+
+# Konfiguracje tymczasowe
+src/conf/temp/
+src/conf/temp/history.pud
+
+# Globalne ustawienia aplikacji (jeśli nie powinny być w repo)
+src/conf/global.json
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
