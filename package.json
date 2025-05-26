@@ -20,15 +20,7 @@
       "icon": "./icon.ico",
       "artifactName": "marchol.exe"
     },
-    "asar": false,
-    "publish": [
-      {
-        "provider": "github",
-        "repo": "marchol",
-        "owner": "filutkowski",
-        "releaseType": "release"
-      }
-    ]
+    "asar": false
   },
   "devDependencies": {
     "electron": "^35.0.2",
