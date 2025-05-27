@@ -34,7 +34,7 @@
     "electron-updater": "^6.6.2",
     "express": "^5.1.0",
     "got": "^14.4.7",
-    "marchol-update-assistant": "^1.2.1",
+    "marchol-update-assistant": "^1.2.2",
     "nodemon": "^3.1.10",
     "npm": "^11.3.0",
     "regedit": "^5.1.4",
